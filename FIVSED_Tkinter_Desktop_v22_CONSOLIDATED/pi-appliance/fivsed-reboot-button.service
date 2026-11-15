@@ -1,0 +1,12 @@
+[Unit]
+Description=FIVSED GPIO13 Reboot Button
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/home/fivsed/FIVSED_GUI/.venv/bin/python /home/fivsed/FIVSED_GUI/pi-appliance/fivsed-reboot-button.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

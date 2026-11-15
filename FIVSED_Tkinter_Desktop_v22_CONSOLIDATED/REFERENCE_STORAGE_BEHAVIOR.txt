@@ -1,0 +1,8 @@
+FIVSED reference storage behavior
+
+1. First-time target provisioning is a physical STM32 action: connect the target, select the slot, and use the STM32 REGISTER control.
+2. STM32 reads the actual firmware and computes SHA-256 internally. The binary digest is stored in STM32 internal flash.
+3. Pi receives only the result/status summary. ESP32 receives only the same STM32-originated result/status summary.
+4. The reference SHA-256 value is not displayed in the Tkinter GUI, not stored in Raspberry Pi audit history, and is not included in STM32 result JSON.
+5. On later verification of the registered target, STM32 computes a fresh digest and compares it with its internally stored reference, then reports MATCH, HASH_MISMATCH, or an error.
+6. Legitimate firmware updates continue to require the physical STM32 Re-baseline action.

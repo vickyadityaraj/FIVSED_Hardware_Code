@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>FIVSED - Firmware Integrity Verification</title>
+  <style>
+    :root{
+      --bg:#050805;--panel:#0a110b;--panel2:#0d160e;--line:#17301d;--text:#ecfff2;--muted:#789280;
+      --green:#39ff88;--green2:#123d25;--red:#ff4d5a;--red2:#3d1215;--amber:#ffd34d;--cyan:#55d9ff;
+    }
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:14px system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;min-height:100vh}
+    button{font:inherit} .app{min-height:100vh;display:flex;flex-direction:column}.top{height:54px;background:#020402;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 14px;gap:8px}
+    .brand{display:flex;align-items:center;gap:10px}.logo{width:34px;height:34px;border:1px solid #1e6d39;border-radius:8px;display:grid;place-items:center;color:var(--green);font-weight:800}.title{font-size:18px;font-weight:800;letter-spacing:1px}.sub{font-size:10px;color:var(--muted)}
+    .badges{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.badge{padding:5px 8px;border:1px solid var(--line);border-radius:999px;font-size:10px;color:var(--muted);white-space:nowrap}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;background:var(--amber)}.ok .dot{background:var(--green)}.bad .dot{background:var(--red)}
+    .body{display:flex;flex:1;min-height:0}.side{width:145px;background:var(--panel);border-right:1px solid var(--line);padding:9px 6px}.nav{width:100%;border:0;background:transparent;color:var(--text);text-align:left;padding:10px 8px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700}.nav:hover,.nav.active{background:var(--panel2);color:var(--green)}
+    .content{flex:1;min-width:0;padding:12px;overflow:auto}.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}.h1{font-size:16px;color:var(--green);font-weight:800;letter-spacing:.4px}.muted{color:var(--muted)}
+    .toolbar{display:flex;gap:7px;flex-wrap:wrap}.btn{border:1px solid #20512e;background:var(--panel2);color:var(--green);padding:8px 11px;border-radius:6px;cursor:pointer;font-weight:800;font-size:11px}.btn:hover{background:var(--green2)}.btn:disabled{opacity:.45;cursor:not-allowed}.btn-red{border-color:#6b1b26;color:#ff8890;background:var(--red2)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:9px}.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px}.card.selected{border-color:#2d8c4f;box-shadow:0 0 0 1px rgba(57,255,136,.12) inset}.card h3{margin:0 0 3px;font-size:13px}.meta{font-size:10px;color:var(--muted);line-height:1.6}.chip{display:inline-block;padding:3px 6px;border-radius:4px;font-size:9px;font-weight:800;margin-top:5px}.chip-ok{background:var(--green2);color:var(--green)}.chip-red{background:var(--red2);color:#ff8890}.chip-amber{background:#3b320e;color:var(--amber)}
+    .empty{border:1px dashed #28422e;background:#071008;border-radius:8px;padding:25px;text-align:center;color:var(--muted)}.empty strong{display:block;color:var(--amber);margin-bottom:5px}
+    .two{display:grid;grid-template-columns:minmax(240px,1fr) minmax(280px,1.4fr);gap:9px}.kv{display:grid;grid-template-columns:1fr 1fr;gap:7px}.kv div{background:var(--panel2);padding:8px;border-radius:6px}.kv span{display:block}.k{color:var(--muted);font-size:9px}.v{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:10px;margin-top:3px;word-break:break-word}
+    .status{border-radius:8px;padding:14px;border:1px solid var(--line);text-align:center;background:var(--panel)}.status.match{border-color:#245b36;background:#08150b}.status.mismatch{border-color:#7c2630;background:#1c090d}.status.error{border-color:#705d22;background:#19140a}.status.new{border-color:#3d6d48;background:#102014}.status h2{margin:0 0 6px;font-size:18px}.status p{margin:3px 0;color:var(--muted)}.hash{font:10px ui-monospace,SFMono-Regular,Consolas,monospace;background:#020402;padding:8px;border-radius:6px;word-break:break-all;margin-top:6px;text-align:left}.progress{height:9px;background:#061008;border-radius:999px;overflow:hidden;border:1px solid var(--line);margin:9px 0}.bar{height:100%;width:0;background:var(--green);transition:width .2s linear}.stage{font-size:11px;color:var(--cyan);font-weight:800;text-align:center}.timeline{font-size:10px;line-height:1.75;color:var(--muted)}.timeline .active{color:var(--green);font-weight:800}
+    table{width:100%;border-collapse:collapse;font-size:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}.table-wrap{overflow:auto}th,td{padding:7px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{color:var(--muted);font-weight:700}td code{font:9px ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--cyan)}
+    .log{font:10px ui-monospace,SFMono-Regular,Consolas,monospace;padding:6px 0;border-bottom:1px solid #0d1d11}.log .lvl{font-weight:800}.sys-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.sys-card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:9px}.sys-card h4{margin:0 0 5px;font-size:9px;color:var(--muted)}.sys-card div{font:10px ui-monospace,SFMono-Regular,Consolas,monospace;word-break:break-word}
+    .small{font-size:9px}.hidden{display:none!important}@media(max-width:720px){.body{display:block}.side{width:100%;display:flex;overflow:auto;border-right:0;border-bottom:1px solid var(--line)}.nav{width:auto;white-space:nowrap}.two,.sys-grid{grid-template-columns:1fr}.badges{max-width:55vw}.sub{display:none}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand"><div class="logo">F</div><div><div class="title">FIVSED</div><div class="sub">FIRMWARE INTEGRITY VERIFICATION &amp; SECURITY EVENT DETECTION</div></div></div>
+    <div class="badges">
+      <div id="stmBadge" class="badge"><span class="dot"></span>STM32: UNKNOWN</div>
+      <div id="espBadge" class="badge"><span class="dot"></span>ESP32: UNKNOWN</div>
+    </div>
+  </header>
+  <div class="body">
+    <aside class="side">
+      <button class="nav active" data-page="targets">TARGETS</button>
+      <button class="nav" data-page="scan">SCAN</button>
+      <button class="nav" data-page="history">HISTORY</button>
+      <button class="nav" data-page="system">SYSTEM</button>
+      <button class="nav" data-page="logs">LOGS</button>
+    </aside>
+    <main class="content">
+      <section id="page-targets">
+        <div class="section-head"><div><div class="h1">TARGET DEVICES</div><div class="muted small">Only currently detected hardware is shown.</div></div><div class="toolbar"><button class="btn" id="refreshBtn">REFRESH</button></div></div>
+        <div id="targetGrid" class="grid"></div>
+        <div id="targetDetails" class="card hidden" style="margin-top:9px"></div>
+      </section>
+
+      <section id="page-scan" class="hidden">
+        <div class="section-head"><div><div class="h1">FIRMWARE INTEGRITY SCAN</div><div class="muted small">The STM32 is the verification authority.</div></div></div>
+        <div class="two">
+          <div class="card">
+            <div class="small muted">TARGET</div><div id="scanTargetName" style="font-weight:800;margin-top:4px">No target selected</div>
+            <div id="scanTargetMeta" class="meta" style="margin-top:4px"></div>
+            <div class="toolbar" style="margin-top:9px"><button class="btn" id="scanBtn" disabled>START SCAN</button></div>
+            <div class="timeline" id="scanTimeline" style="margin-top:11px">
+              <div data-stage="TARGET_SELECTED">TARGET SELECTED</div>
+              <div data-stage="ACQUIRING_FIRMWARE">ACQUIRING FIRMWARE</div>
+              <div data-stage="STM32_CALCULATING_SHA256">STM32 CALCULATING SHA-256 (256-BYTE STREAM)</div>
+              <div data-stage="VERIFYING_REFERENCE">VERIFYING REFERENCE</div>
+              <div data-stage="RESULT_RECEIVED">RESULT RECEIVED</div>
+            </div>
+          </div>
+          <div>
+            <div class="status" id="scanStatus"><h2>READY</h2><p>Select a connected target with supported firmware acquisition.</p></div>
+            <div class="card" style="margin-top:9px"><div class="stage" id="scanStage">IDLE</div><div class="progress"><div class="bar" id="scanBar"></div></div><div class="meta" id="scanProgressText">0 / 0 bytes</div></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-history" class="hidden">
+        <div class="section-head"><div><div class="h1">SECURITY SCAN HISTORY</div><div class="muted small">Real STM32-originated scan events only.</div></div><button class="btn" id="historyRefreshBtn">REFRESH</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Timestamp</th><th>Target</th><th>Interface</th><th>Firmware</th><th>Result</th><th>STM32</th><th>Duration</th></tr></thead><tbody id="historyBody"></tbody></table></div>
+      </section>
+
+      <section id="page-system" class="hidden">
+        <div class="section-head"><div><div class="h1">SYSTEM</div><div class="muted small">Live Raspberry Pi / Windows system information.</div></div><button class="btn" id="systemRefreshBtn">REFRESH</button></div>
+        <div id="systemGrid" class="sys-grid"></div>
+      </section>
+
+      <section id="page-logs" class="hidden">
+        <div class="section-head"><div><div class="h1">AUDIT LOGS</div><div class="muted small">Connection, acquisition and verification events only.</div></div><button class="btn" id="logsRefreshBtn">REFRESH</button></div>
+        <div id="logsBox" class="card"></div>
+      </section>
+    </main>
+  </div>
+</div>
+<script>
+const state={targets:[],selected:null,scanId:null};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'N/A').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function setPage(page){document.querySelectorAll('[id^="page-"]').forEach(x=>x.classList.toggle('hidden',x.id!==`page-${page}`));document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.page===page));if(page==='history')loadHistory();if(page==='system')loadSystem();if(page==='logs')loadLogs();}
+document.querySelectorAll('.nav').forEach(b=>b.addEventListener('click',()=>setPage(b.dataset.page)));
+$('refreshBtn').onclick=refreshTargets;$('historyRefreshBtn').onclick=loadHistory;$('systemRefreshBtn').onclick=loadSystem;$('logsRefreshBtn').onclick=loadLogs;
+function badge(el,label,ok){el.className='badge '+(ok?'ok':'bad');el.innerHTML=`<span class="dot"></span>${esc(label)}`;}
+async function api(url,opts){const r=await fetch(url,opts);const d=await r.json();if(!r.ok)throw new Error(d.error||`HTTP ${r.status}`);return d;}
+async function refreshStatus(){try{const d=await api('/api/status');const s=d.components?.stm32||{};const e=d.components?.esp32||{};badge($('stmBadge'),`STM32: ${s.connected?'CONNECTED':'DISCONNECTED'}`,s.connected);badge($('espBadge'),`ESP32: ${e.connected?'CONNECTED':'DISCONNECTED'}`,e.connected);if(state.targets.length===0 && d.targets)renderTargets(d.targets);}catch(e){badge($('stmBadge'),'STM32: DISCONNECTED',false);badge($('espBadge'),'ESP32: DISCONNECTED',false);}}
+async function refreshTargets(){try{const targets=await api('/api/targets');state.targets=targets;renderTargets(targets);refreshTargetDetails();}catch(e){$('targetGrid').innerHTML=`<div class="empty"><strong>BACKEND UNAVAILABLE</strong>${esc(e.message)}</div>`;}}
+function capabilityChip(t){if(t.capability==='ACQUISITION_SUPPORTED')return '<span class="chip chip-ok">FIRMWARE ACQUISITION SUPPORTED</span>';return '<span class="chip chip-amber">FIRMWARE ACQUISITION UNSUPPORTED</span>';}
+function renderTargets(targets){const c=$('targetGrid');if(!targets.length){c.innerHTML=`<div class="empty"><strong>NO TARGET DEVICES DETECTED</strong>Connect an authorized target device.</div>`;return;}c.innerHTML=targets.map(t=>{const selected=state.selected?.id===t.id;const reg=t.registered?'REGISTERED':'UNREGISTERED';return `<div class="card ${selected?'selected':''}" data-id="${esc(t.id)}" tabindex="0"><h3>${esc(t.name)}</h3><div class="meta">Manufacturer: ${esc(t.manufacturer)}<br>Model: ${esc(t.model)}<br>VID/PID: ${esc(t.vid)} / ${esc(t.pid)}<br>Serial: ${esc(t.serial)}<br>Interface: ${esc(t.interface)}<br>Status: ${esc(t.status)}<br>Acquisition: ${esc(t.acquisition_method||'UNSUPPORTED')}<br>Reference state: ${esc(reg)}</div>${capabilityChip(t)}</div>`}).join('');c.querySelectorAll('.card[data-id]').forEach(el=>{el.onclick=()=>selectTarget(el.dataset.id);el.onkeydown=e=>{if(e.key==='Enter')selectTarget(el.dataset.id);}});}
+function selectTarget(id){state.selected=state.targets.find(t=>t.id===id)||null;renderTargets(state.targets);refreshTargetDetails();setPage('scan');}
+function refreshTargetDetails(){const box=$('targetDetails');const t=state.selected;if(!t){box.classList.add('hidden');return;}box.classList.remove('hidden');box.innerHTML=`<div class="section-head"><div><div class="h1">TARGET</div><div style="font-weight:800;margin-top:3px">${esc(t.name)}</div></div><span class="chip ${t.capability==='ACQUISITION_SUPPORTED'?'chip-ok':'chip-amber'}">${esc(t.capability||'ACQUISITION_UNSUPPORTED')}</span></div><div class="kv"><div><span class="k">TARGET ID</span><span class="v">${esc(t.id)}</span></div><div><span class="k">TYPE</span><span class="v">${esc(t.type)}</span></div><div><span class="k">MANUFACTURER</span><span class="v">${esc(t.manufacturer)}</span></div><div><span class="k">VID / PID</span><span class="v">${esc(t.vid)} / ${esc(t.pid)}</span></div><div><span class="k">SERIAL</span><span class="v">${esc(t.serial)}</span></div><div><span class="k">BUS</span><span class="v">${esc(t.bus)}</span></div><div><span class="k">INTERFACE</span><span class="v">${esc(t.interface)}</span></div><div><span class="k">FIRMWARE SIZE</span><span class="v">${t.firmware_size?esc(t.firmware_size.toLocaleString())+' bytes':'N/A'}</span></div></div>`;updateScanTarget();}
+function updateScanTarget(){const t=state.selected;$('scanTargetName').textContent=t?t.name:'No target selected';$('scanTargetMeta').innerHTML=t?`Interface: ${esc(t.interface)}<br>Method: ${esc(t.acquisition_method||'UNSUPPORTED')}<br>Capability: ${esc(t.capability||'ACQUISITION_UNSUPPORTED')}`:'Select a target from TARGETS.';$('scanBtn').disabled=!(t&&t.capability==='ACQUISITION_SUPPORTED');}
+$('scanBtn').onclick=async()=>{const t=state.selected;if(!t)return;state.scanId=null;$('scanBtn').disabled=true;$('scanStatus').className='status';$('scanStatus').innerHTML='<h2>SCANNING</h2><p>Waiting for the real STM32 response.</p>';$('scanBar').style.width='0%';$('scanProgressText').textContent='0 / 0 bytes';try{const d=await api('/api/scan/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({target_id:t.id})});state.scanId=d.scan_id;pollScan();}catch(e){$('scanStatus').className='status error';$('scanStatus').innerHTML=`<h2>FIRMWARE ACQUISITION ERROR</h2><p>${esc(e.message)}</p>`;$('scanBtn').disabled=false;}};
+async function pollScan(){if(!state.scanId)return;try{const d=await api(`/api/scan/${encodeURIComponent(state.scanId)}`);const s=d.scan;updateScan(s);if(s.status==='COMPLETE'){$('scanBtn').disabled=false;state.targets=await api('/api/targets');renderTargets(state.targets);refreshTargetDetails();return;}setTimeout(pollScan,450);}catch(e){$('scanStatus').className='status error';$('scanStatus').innerHTML=`<h2>FIRMWARE ACQUISITION ERROR</h2><p>${esc(e.message)}</p>`;$('scanBtn').disabled=false;}}
+function updateScan(s){$('scanStage').textContent=s.stage||'SCANNING';const total=Number(s.total_bytes||0),done=Number(s.bytes_processed||0);$('scanProgressText').textContent=`${done.toLocaleString()} / ${total.toLocaleString()} bytes`;$('scanBar').style.width=total?`${Math.min(100,done*100/total)}%`:'0%';document.querySelectorAll('#scanTimeline [data-stage]').forEach(x=>x.classList.toggle('active',x.dataset.stage===s.stage));if(s.status!=='COMPLETE')return;let cls='error',title='FIRMWARE ACQUISITION ERROR',msg=s.reason||'No reason supplied by STM32.';if(s.result==='MATCH'){cls='match';title='INTEGRITY VERIFIED';msg='Firmware measurement matches the STM32 trusted reference.'}else if(s.result==='HASH_MISMATCH'){cls='mismatch';title='HASH MISMATCH';msg='Firmware measurement differs from the trusted reference.'}else if(s.result==='NEW_TARGET_REGISTERED'){cls='new';title='NEW TARGET REGISTERED';msg='Trusted reference was created and stored inside STM32 during controlled physical provisioning.'}else if(s.result==='UNREGISTERED'){cls='error';title='TARGET NOT REGISTERED';msg='The STM32 measured the target but no trusted reference exists. Use the physical STM32 provisioning control to create the first reference; the web UI cannot change it.'}else if(s.result==='FIRMWARE_READ_UNSUPPORTED'){cls='error';title='FIRMWARE ACQUISITION NOT SUPPORTED';msg=s.reason||'No authorized acquisition method is available.'}else if(s.result==='FIRMWARE_ACCESS_PROTECTED'){cls='error';title='FIRMWARE ACCESS PROTECTED';msg=s.reason||'The target prevents the configured authorized acquisition path.'}$('scanStatus').className=`status ${cls}`;$('scanStatus').innerHTML=`<h2>${esc(title)}</h2><p>${esc(msg)}</p><p class="small">Decision Authority: STM32</p>`}
+async function loadHistory(){try{const rows=await api('/api/history?limit=50');const b=$('historyBody');if(!rows.length){b.innerHTML='<tr><td colspan="7" style="text-align:center;color:#789280">No scans recorded.</td></tr>';return;}b.innerHTML=rows.map(h=>`<tr><td>${esc(h.created_at||'N/A')}</td><td>${esc(h.target_name)}<br><code>${esc(h.target_id)}</code></td><td>${esc(h.interface)}</td><td>${h.firmware_size?esc(Number(h.firmware_size).toLocaleString())+' B':'N/A'}</td><td>${esc(h.result||'N/A')}${h.reason?'<br><span class="muted">'+esc(h.reason)+'</span>':''}</td><td>${esc(h.stm32_status||'N/A')}</td><td>${h.duration_ms!=null?esc(h.duration_ms)+' ms':'N/A'}</td></tr>`).join('');}catch(e){$('historyBody').innerHTML=`<tr><td colspan="7">${esc(e.message)}</td></tr>`;}}
+function sysCard(k,v){return `<div class="sys-card"><h4>${esc(k)}</h4><div>${esc(v)}</div></div>`}
+async function loadSystem(){try{const d=await api('/api/status');const p=d.pi||{},h=d.hardware||{};$('systemGrid').innerHTML=[['PLATFORM',p.platform],['MODEL',p.model],['HOSTNAME',p.hostname],['OS',p.os],['KERNEL',p.kernel],['ARCHITECTURE',p.architecture],['CPU',p.cpu],['CPU COUNT',p.cpu_count],['CPU LOAD',p.cpu_load_percent==null?'N/A':p.cpu_load_percent+' %'],['RAM',p.memory_available_mb==null?'N/A':p.memory_available_mb+' / '+p.memory_total_mb+' MB'],['DISK',p.disk_free_gb==null?'N/A':p.disk_free_gb+' / '+p.disk_total_gb+' GB'],['TEMPERATURE',p.temperature_c==null?'N/A':p.temperature_c+' °C'],['SERIAL INTERFACES',(p.serial_interfaces||[]).join(', ')||'None'],['SPI INTERFACES',(p.spi_interfaces||[]).join(', ')||'None'],['USB / HOST DEVICES',(h.host_devices||[]).length],['UPTIME',p.uptime||'N/A']].map(x=>sysCard(x[0],x[1])).join('');}catch(e){$('systemGrid').innerHTML=sysCard('ERROR',e.message);}}
+async function loadLogs(){try{const rows=await api('/api/logs?limit=100');$('logsBox').innerHTML=rows.length?rows.map(l=>`<div class="log"><span class="lvl">[${esc(l.level)}]</span> [${esc(l.timestamp)}] [${esc(l.module)}] ${esc(l.message)}</div>`).join(''):'<div class="empty">No audit events recorded.</div>';}catch(e){$('logsBox').innerHTML=esc(e.message);}}
+refreshTargets();refreshStatus();setInterval(refreshTargets,3000);setInterval(refreshStatus,3000);
+</script>
+</body>
+</html>

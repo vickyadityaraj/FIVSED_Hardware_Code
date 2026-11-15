@@ -1,0 +1,20 @@
+FIVSED v19 USB device detection scope
+
+This revision broadens the Targets discovery layer so the Raspberry Pi GUI can list
+real host-connected USB devices even when they do not expose a serial port or block
+storage node (for example phones in MTP/PTP mode and other USB peripherals).
+
+The STM32 USB CDC security-core device (0483:5740 / FIVSED Security Core) is excluded
+from the target list because it is the verifier, not a monitored target.
+
+USB hubs/root infrastructure are excluded from the target list.
+
+Important security boundary:
+Detection is not the same as firmware acquisition. Generic USB devices and phones may
+be displayed as detected, but FIVSED will not claim that their firmware is readable.
+Firmware acquisition is enabled only for explicit authorized acquisition providers.
+The Samsung/Android MTP path is detection-only in this revision.
+
+
+DEFAULT SPI TARGET
+The default FIVSED firmware target is now W25Q64JV on Raspberry Pi SPI1 CE0 (/dev/spidev1.0). This is a real hardware probe, not a placeholder. The Pi reads raw flash bytes and streams them to STM32; STM32 remains authoritative for SHA-256 and integrity comparison.

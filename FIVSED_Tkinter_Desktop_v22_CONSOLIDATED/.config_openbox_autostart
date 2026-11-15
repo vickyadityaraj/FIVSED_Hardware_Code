@@ -1,0 +1,5 @@
+# FIVSED portrait appliance display
+# Rotate X11 first, then start Tkinter.
+"/home/fivsed/FIVSED_GUI/rotate-display-left.sh" >>"${HOME}/.fivsed-rotation-autostart.log" 2>&1
+"/home/fivsed/FIVSED_GUI/fivsed-touch-correction.sh" >>"${HOME}/.fivsed-touch-autostart.log" 2>&1
+"/home/fivsed/FIVSED_GUI/start-fivsed.sh" >>"${HOME}/.fivsed-gui.log" 2>&1 &
